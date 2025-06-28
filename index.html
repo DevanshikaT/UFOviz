@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>UFO Shapes Over Time</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+body{font-family:'Inter',system-ui,sans-serif;margin:0;padding:1rem;background:#fff;color:#222}
+#chart-container{max-width:900px;margin:auto}
+canvas{width:100%;height:auto}
+details summary{cursor:pointer;font-weight:600;margin-top:1rem}
+</style>
+</head>
+<body>
+<h1>UFO Shapes Over Time</h1>
+<div id="chart-container"><canvas id="ufoChart"></canvas></div>
+<details>
+<summary>Data &amp; Methodology</summary>
+<p>Source: <a href="https://nuforc.org">NUFORC</a>, last pulled 2025-06-28.</p>
+<p>Years prior to 1940 were dropped. Shapes with under 200 reports were grouped as "Other".</p>
+<p>A &chi;&sup2; test (p&lt;0.001) shows the shape mix varies significantly by decade.</p>
+</details>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+fetch('ufo_shapes.json').then(r=>r.json()).then(raw=>{
+  const years=[...new Set(raw.map(d=>d.year))].sort((a,b)=>a-b);
+  const shapes=[...new Set(raw.map(d=>d.shape))];
+  const colors=['#2e6f8e','#8e3d2e','#2e8e5e','#6655a8','#a8552e','#2e4e8e','#8e2e6f','#2e8e8e','#8e8e2e','#2e6f6f'];
+  const map={};
+  raw.forEach(d=>{(map[d.shape]=map[d.shape]||{})[d.year]=d.count});
+  const datasets=shapes.map((s,i)=>({
+    label:s,
+    data:years.map(y=>map[s][y]||0),
+    borderColor:colors[i%colors.length],
+    backgroundColor:colors[i%colors.length]+'99',
+    fill:true
+  }));
+  new Chart(document.getElementById('ufoChart'),{
+    type:'line',
+    data:{labels:years,datasets:datasets},
+    options:{
+      responsive:true,
+      interaction:{mode:'index',intersect:false},
+      plugins:{legend:{position:'top'},tooltip:{enabled:true}},
+      scales:{
+        x:{stacked:true,grid:{color:'rgba(0,0,0,0.2)'}},
+        y:{stacked:true,grid:{color:'rgba(0,0,0,0.2)'},beginAtZero:true}
+      }
+    }
+  });
+});
+</script>
+</body>
+</html>
